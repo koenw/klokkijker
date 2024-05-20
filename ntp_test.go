@@ -11,7 +11,7 @@ type testData struct {
 var testCases []testData
 
 func init() {
-	testCases = []testData{{server: "tik.koenw.dev."}}
+	testCases = []testData{{server: "0.pool.ntp.org"}}
 }
 
 func TestPingSingle(t *testing.T) {
