@@ -1,0 +1,8 @@
+---
+scrape_configs:
+- job_name: klokkijker
+  scrape_interval: 5s
+  static_configs:
+  - labels: {}
+    targets:
+    - klokkijker:8123

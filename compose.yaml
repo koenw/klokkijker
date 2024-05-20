@@ -1,0 +1,38 @@
+name: klokkijker
+
+services:
+  klokkijker:
+    build: ./
+    command: 'tik.koenw.dev ntp1.kpn.net ntp2.kpn.net ntp3.kpn.net ntp4.kpn.net --prometheus --interval 5'
+    ports:
+      - 8123:8123
+    networks:
+      - internal
+
+  prometheus:
+    image: prom/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    user: "${UID}:${GID}"
+    volumes:
+      - ${PWD}/dist/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ${PWD}/dist/prometheus/data:/prometheus:rw
+    networks:
+      - internal
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ${PWD}/dist/grafana/datasources/:/etc/grafana/provisioning/datasources/
+      - ${PWD}/dist/grafana/dashboards/:/etc/grafana/provisioning/dashboards/
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
