@@ -16,9 +16,12 @@ jobs:
         with:
           go-version: '1.22'
 
+      - name: Setup just
+        run: sudo snap install --edge --classic just
+
       - name: Build
-        run: go build -v
+        run: just build
 
       - name: Test
-        run: go test -v
+        run: just test
 

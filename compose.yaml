@@ -3,7 +3,7 @@ name: klokkijker
 services:
   klokkijker:
     build: ./
-    command: '0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org --prometheus --interval 5'
+    command: 'monitor --prometheus-address 0.0.0.0 --interval 1 3.pool.ntp.org'
     ports:
       - 8123:8123
     networks:

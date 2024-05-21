@@ -17,9 +17,10 @@ let
   goEnv = mkGoEnv { pwd = ./.; };
 in
 pkgs.mkShell {
-  packages = [
+  packages = with pkgs; [
     goEnv
     gomod2nix
+    just
   ];
   shellHook = ''
     user_shell=$(getent passwd "$(whoami)" |cut -d: -f 7)

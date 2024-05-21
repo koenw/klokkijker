@@ -1,44 +1,32 @@
-package main
+package prometheus
 
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/apex/log"
+	"github.com/koenw/klokkijker/internal/ntp"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func collectMetrics(server string, metrics *metrics, count int, interval int) {
-	resps := make(chan NTPResponse)
+func CollectMetrics(resps <-chan ntp.NTPResponse, metrics *metrics) {
+	for resp := range resps {
+		metrics.requestsTotal.Inc()
 
-	for {
-		for _, server := range CLI.Servers {
-			go ping(server, CLI.Count, resps)
+		if resp.Err != nil {
+			metrics.requestsError.Inc()
+		} else {
+			metrics.offset.Set(float64(resp.ClockOffset.Nanoseconds()))
+			metrics.rtt.Set(float64(resp.RTT.Nanoseconds()))
+			metrics.precision.Set(float64(resp.Precision.Nanoseconds()))
+			metrics.rootDelay.Set(float64(resp.RootDelay.Nanoseconds()))
+			metrics.rootDispersion.Set(float64(resp.RootDispersion.Nanoseconds()))
+			metrics.rootDistance.Set(float64(resp.RootDistance.Nanoseconds()))
+			metrics.minError.Set(float64(resp.MinError.Nanoseconds()))
+			metrics.leap.Set(float64(resp.Leap))
+			metrics.poll.Set(float64(resp.Poll))
 		}
-
-		for i := 0; i < (CLI.Count * len(CLI.Servers)); i++ {
-			resp := <-resps
-
-			metrics.requestsTotal.Inc()
-
-			if resp.err != nil {
-				metrics.requestsError.Inc()
-			} else {
-				metrics.offset.Set(float64(resp.ClockOffset.Nanoseconds()))
-				metrics.rtt.Set(float64(resp.RTT.Nanoseconds()))
-				metrics.precision.Set(float64(resp.Precision.Nanoseconds()))
-				metrics.rootDelay.Set(float64(resp.RootDelay.Nanoseconds()))
-				metrics.rootDispersion.Set(float64(resp.RootDispersion.Nanoseconds()))
-				metrics.rootDistance.Set(float64(resp.RootDistance.Nanoseconds()))
-				metrics.minError.Set(float64(resp.MinError.Nanoseconds()))
-				metrics.leap.Set(float64(resp.Leap))
-				metrics.poll.Set(float64(resp.Poll))
-			}
-		}
-
-		time.Sleep(time.Duration(interval) * time.Second)
 	}
 }
 
@@ -196,16 +184,12 @@ func newMetrics(reg prometheus.Registerer, server string) *metrics {
 	return m
 }
 
-func promHandler(servers []string, count int, interval int) http.Handler {
+func Monitor(servers []string, resps <-chan ntp.NTPResponse) http.Handler {
 	reg := prometheus.NewRegistry()
 
 	for _, server := range servers {
 		m := newMetrics(reg, server)
-		go collectMetrics(server, m, count, interval)
+		go CollectMetrics(resps, m)
 	}
-
 	return promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
-}
-
-func recordMetrics(chan<- NTPResponse) {
 }

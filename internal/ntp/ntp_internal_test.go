@@ -1,4 +1,4 @@
-package main
+package ntp
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ type testData struct {
 var testCases []testData
 
 func init() {
-	testCases = []testData{{server: "0.pool.ntp.org"}}
+	testCases = []testData{{server: "3.pool.ntp.org"}}
 }
 
 func TestPingSingle(t *testing.T) {
@@ -21,8 +21,8 @@ func TestPingSingle(t *testing.T) {
 			t.Errorf("Failed to get a response from %s: %s. (Is the server running?)", test.server, err)
 		}
 
-		if resp.server != test.server {
-			t.Errorf("resp.server equals %s, expected %s", resp.server, test.server)
+		if resp.Server != test.server {
+			t.Errorf("resp.server equals %s, expected %s", resp.Server, test.server)
 		}
 	}
 }
@@ -31,11 +31,11 @@ func TestPing(t *testing.T) {
 	for _, test := range testCases {
 		count := 0
 		ch := make(chan NTPResponse)
-		ping(test.server, count, ch)
+		Ping(test.server, count, ch)
 		for i := 0; i < count; i++ {
 			resp := <-ch
-			if resp.server != test.server {
-				t.Errorf("resp.server equals %s, expected %s", resp.server, test.server)
+			if resp.Server != test.server {
+				t.Errorf("resp.server equals %s, expected %s", resp.Server, test.server)
 			}
 		}
 	}

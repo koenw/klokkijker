@@ -15,5 +15,3 @@ FROM scratch
 COPY --from=builder /go/bin/klokkijker /klokkijker
 
 ENTRYPOINT [ "/klokkijker" ]
-
-
