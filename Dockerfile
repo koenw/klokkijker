@@ -7,7 +7,7 @@ WORKDIR /app
 COPY . .
 
 RUN go get -d -v
-RUN go build -o /go/bin/klokkijker
+RUN go build -ldflags "-X github.com/koenw/klokkijker/internal/cmd.GitCommit=$(git describe --tags)" -o /go/bin/klokkijker
 
 
 FROM scratch
