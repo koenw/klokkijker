@@ -5,7 +5,7 @@ name: Build & publish executable packages for common OS-es
 on:
   push:
     tags:
-      - '*'
+      - 'v*'
 
 
 jobs:
@@ -34,3 +34,9 @@ jobs:
         with:
           path: ./klokkijker_*
           if-no-files-found: error
+
+      - name: Publish release
+        uses: Shopify/upload-to-release@v1
+        with:
+          path: ./klokkijker_*
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
