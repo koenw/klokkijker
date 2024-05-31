@@ -3,6 +3,7 @@ package ntp
 import (
 	"fmt"
 	"time"
+	"math"
 
 	"github.com/apex/log"
 	"github.com/beevik/ntp"
@@ -16,6 +17,8 @@ type NTPResponse struct {
 	Err    error
 }
 
+
+// PingSingle sends a single NTP Request to the given server.
 func pingSingle(server string) (NTPResponse, error) {
 	resp, err := ntp.Query(server)
 	if err != nil {
@@ -48,6 +51,9 @@ func pingSingle(server string) (NTPResponse, error) {
 
 }
 
+
+// Ping sends `count` number of NTP requests to the given server, sending the
+// response to the given `out` channel.
 func Ping(server string, count int, out chan NTPResponse) {
 	var wg sync.WaitGroup
 
@@ -69,56 +75,56 @@ func Ping(server string, count int, out chan NTPResponse) {
 // rpmToInterval takes an Requests Per Minutes (or Ops per Minute) and returns
 // the interval between each occurence as a time.Duration
 func rpmToInterval(rpm int) time.Duration {
-	rpd := rpm * 60 * 24
-
-	seconds := (float64(60*60*24) / float64(rpd))
-	duration, err := time.ParseDuration(fmt.Sprintf("%fs", seconds))
+	// I'm increasing both to requests / day during the calculation to increase
+	// resolution
+	seconds := (float64(60*60*24) / float64(rpm * 60 * 24))
+	var duration time.Duration
+	var err error
+	if seconds == math.Inf(1) {
+		duration, err = time.ParseDuration(fmt.Sprintf("%ds", 1))
+	} else {
+		duration, err = time.ParseDuration(fmt.Sprintf("%fs", seconds))
+	}
 	if err != nil {
 		panic(fmt.Sprintf("Failed to parse duration from \"%fs\": %s", seconds, err))
 	}
 	return duration
 }
 
+
+// GenerateRequests generates NTP requests to the given server at the given
+// Requests Per Minute (RPM) building up from 0 rpm to the given rpm over the
+// given ramp period in seconds, sending the replies to the supplied channel.
+func generateRequests(server string, rpm int, rampPeriod time.Duration, resps chan NTPResponse) {
+	rampSeconds := rampPeriod.Seconds()
+	requestInterval := rpmToInterval(rpm)
+
+	for i := 0; float64(i) < rampSeconds; i++ {
+		nextRPM := (float64(i) / rampSeconds) * float64(rpm)
+		nextRequestInterval := rpmToInterval(int(nextRPM))
+		log.Debug(fmt.Sprintf("Setting RPM to %d (interval %s)", nextRPM, nextRequestInterval))
+		count := 1_000_000_000 / nextRequestInterval.Nanoseconds()
+		for j := int64(0); j < count; j++ {
+			Ping(server, 1, resps)
+			time.Sleep(nextRequestInterval)
+		}
+	}
+
+	log.Debug(fmt.Sprintf("Setting RPM to %d (interval %s)", rpm, requestInterval))
+	for {
+		Ping(server, 1, resps)
+		time.Sleep(requestInterval)
+	}
+}
+
 // GenerateRequests generates NTP requests to the given servers at the given
 // Requests Per Minute (RPM) building up from 0 rpm to the given rpm over the
-// given ramp period in seconds.
+// given ramp period in seconds and returns a channel of `NTPResponse`s.
 func GenerateRequests(servers []string, rpm int, rampPeriod time.Duration) chan NTPResponse {
 	resps := make(chan NTPResponse)
 
 	for _, server := range servers {
-		go func(server string, rpm int, rampPeriod time.Duration) {
-			start := time.Now()
-			rampDoneTime := start.Add(rampPeriod)
-			sleepPeriod := rpmToInterval(rpm)
-
-			var nextSleepPeriod time.Duration
-			rampDone := false
-
-			for {
-				Ping(server, 1, resps)
-				if !rampDone {
-					now := time.Now()
-					if now.Compare(rampDoneTime) >= 0 {
-						rampDone = true
-						continue
-					}
-
-					rampMillisLeft := rampDoneTime.UnixMilli() - now.UnixMilli()
-					rampMillisTotal := rampDoneTime.UnixMilli() - start.UnixMilli()
-
-					perc := 10 * float64(rampMillisLeft) / float64(rampMillisTotal)
-					nextSleepPeriodMillis := perc * float64(sleepPeriod.Milliseconds())
-					nextSleepPeriod, _ = time.ParseDuration(fmt.Sprintf("%fms", nextSleepPeriodMillis))
-					if nextSleepPeriod.Milliseconds() > sleepPeriod.Milliseconds() {
-						nextSleepPeriod = sleepPeriod
-						rampDone = true
-					}
-					time.Sleep(nextSleepPeriod)
-				} else {
-					time.Sleep(sleepPeriod)
-				}
-			}
-		}(server, rpm, rampPeriod)
+		go generateRequests(server, rpm, rampPeriod, resps)
 	}
 
 	return resps
