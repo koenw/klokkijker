@@ -102,7 +102,7 @@ func generateRequests(server string, rpm int, rampPeriod time.Duration, resps ch
 	for i := 0; float64(i) < rampSeconds; i++ {
 		nextRPM := (float64(i) / rampSeconds) * float64(rpm)
 		nextRequestInterval := rpmToInterval(int(nextRPM))
-		log.Debug(fmt.Sprintf("Setting RPM to %d (interval %s)", nextRPM, nextRequestInterval))
+		log.Debug(fmt.Sprintf("Setting RPM to %f (interval %s)", nextRPM, nextRequestInterval))
 		count := 1_000_000_000 / nextRequestInterval.Nanoseconds()
 		for j := int64(0); j < count; j++ {
 			Ping(server, 1, resps)
