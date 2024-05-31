@@ -1,5 +1,4 @@
 ---
-
 name: Build & test golang package
 
 on: [push, pull_request]
@@ -17,11 +16,10 @@ jobs:
           go-version: '1.22'
 
       - name: Setup just
-        run: sudo snap install --edge --classic just
+        uses: extractions/setup-just@v2
 
       - name: Build
         run: just build
 
       - name: Test
         run: just test
-

@@ -19,6 +19,7 @@ Using *just*:
 
 Or using golang directly (pulling the `go build` command from the
 [*Justfile*](./Justfile):
+
 `eval $(perl -0pe 's/^build:\n.*(go build [^\n]+).*/$1/gms' Justfile)`
 
 
