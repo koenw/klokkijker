@@ -1,7 +1,9 @@
 ---
 name: Build & test golang package
 
+
 on: [push, pull_request]
+
 
 jobs:
   build:
@@ -18,8 +20,8 @@ jobs:
       - name: Setup just
         uses: extractions/setup-just@v2
 
-      - name: Build
-        run: just build
-
       - name: Test
         run: just test
+
+      - name: Build
+        run: just build

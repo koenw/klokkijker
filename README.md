@@ -41,10 +41,9 @@ Using *just*:
 
 `just build`
 
-Or using golang directly (pulling the `go build` command from the
-[*Justfile*](./Justfile):
+Or using golang directly (not recommended):
 
-`eval $(perl -0pe 's/^build:\n.*(go build [^\n]+).*/$1/gms' Justfile)`
+`go build -ldflags "-X github.com/koenw/klokkijker/internal/cmd.GitCommit=$(git describe --tags)"`
 
 
 #### Using docker
