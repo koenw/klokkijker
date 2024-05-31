@@ -14,6 +14,22 @@ var (
 		Use:   "ping [--count 1] <NTP Servers>",
 		Short: "Send NTP requests and print the response",
 		Long:  `Send NTP requests and print the response.`,
+		Example: `  klokkijker ntp.example.com
+
+  # Same as above: send a single NTP request to ntp.example.com
+  klokkijker ping ntp.example.com
+
+  # Send 3 NTP requests to ntp.example.com
+  klokkijker ping --count 3 ntp.example.com
+
+  # Continuously send NTP requests to ntp2.example.com & ntp3.example.com,
+  # once every 0.2 seconds.
+  klokkijker ping --interval 0.2 ntp2.example.com ntp3.example.com
+
+  # Continuously send NTP requests to ntp4.example.com, in batches of 5
+  # every 1 second. Print the output in json format and pipe it through
+  # *jq* to only print the Round Trip Time (in nanoseconds)
+  klokkijker ping --format json --interval 1 --count 5 ntp4.example.com |jq .fields.rtt`,
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, servers []string) {
 			setupLogging(outputFormat)

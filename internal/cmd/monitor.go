@@ -17,6 +17,8 @@ var (
 		Use:   "monitor <NTP Servers>",
 		Short: "Continuously send NTP requests and export prometheus metrics",
 		Long:  "Continuously send NTP requests to the given NTP servers and export prometheus\nmetrics over HTTP.",
+		Example: `  klokkijker monitor ntp.example.com
+  klokkijker monitor --interval 1 --prometheus-address 0.0.0.0 ntp1.example.com ntp2.example.com`,
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, servers []string) {
 			setupLogging(outputFormat)

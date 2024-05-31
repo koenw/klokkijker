@@ -16,12 +16,17 @@ var (
 	rootCmd = &cobra.Command{
 		Use:  "klokkijker <NTP servers>",
 		Long: `Diagnostic NTP command-line client & prometheus metrics exporter.`,
-		Example: `klokkijker 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org
-klokkijker ping --format=json 3.pool.ntp.org |jq .offset
-klokkijker ping --interval 1 --count ntp.example.com
+		Example: `  klokkijker ntp.example.com
+  klokkijker ntp1.example.com ntp2.example.com
 
-klokkijker monitor
-`,
+  klokkijker ping --format=json ntp.example.com |jq .fields.offset
+  klokkijker ping --interval 1 --count 3 ntp.example.com
+
+  klokkijker monitor ntp.example.com
+  klokkijker monitor --interval 1 --prometheus-address 0.0.0.0 ntp1.example.com ntp2.example.com
+
+  klokkijker loadgen --rpm 10000 --ramp-period 5m ntp.example.com
+  klokkijker loadgen --rpm 1000 --ramp-period 120s ntp1.example.com ntp2.example.com`,
 	}
 	defaultCmd   = pingCmd
 	outputFormat string
