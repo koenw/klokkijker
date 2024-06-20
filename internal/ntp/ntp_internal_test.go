@@ -1,3 +1,5 @@
+// +build net
+
 package ntp
 
 import (

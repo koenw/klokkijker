@@ -33,8 +33,4 @@ buildCmd := "go build"
 
 # Run the unit & integration tests
 test:
-  #!/usr/bin/env bash
-  set -eu
-  for d in internal/*/; do
-    (cd $d && go test -v);
-  done
+  go test ./... -tags=net

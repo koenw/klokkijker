@@ -5,6 +5,10 @@ Diagnostic NTP command-line client & prometheus metrics exporter.
 
 ## Getting Started
 
+### Running directly using `nix`
+
+`nix run github:koenw/klokkijker`
+
 
 ### Running in docker
 
@@ -31,11 +35,17 @@ borked), simply `docker compose down` and optionally `rm -rf
 
 ### Building locally
 
+
+#### Using nix
+
+`nix build github:koenw/klokkijker`
+
+
+#### Manually
+
 First, install [*golang*](https://go.dev) and optionally (but recommended to
 make building easier) [*just*](https://github.com/casey/just).
 
-
-#### Using locally installed toolchains
 
 Using *just*:
 
