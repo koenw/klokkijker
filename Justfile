@@ -34,3 +34,9 @@ buildCmd := "go build"
 # Run the unit & integration tests
 test:
   go test ./... -tags=net
+
+
+# Remove build-artifacts from directory
+clean:
+  rm -f klokkijker
+  rm -f klokkijker_v*
