@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 	"math"
+	"strings"
 
 	"github.com/apex/log"
 	"github.com/beevik/ntp"
@@ -20,6 +21,9 @@ type NTPResponse struct {
 
 // PingSingle sends a single NTP Request to the given server.
 func pingSingle(server string) (NTPResponse, error) {
+	// Remove cidr notation if present
+	server_s := strings.Split(server, "/")
+	server = server_s[0]
 	resp, err := ntp.Query(server)
 	if err != nil {
 		log.WithFields(log.Fields{
